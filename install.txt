@@ -45,8 +45,16 @@ $TS = (Get-Date -UFormat '%s');
 # -----------------------------------------------------< SCRIPT >----------------------------------------------------- #
 # -------------------------------------------------------------------------------------------------------------------- #
 
-function Compress-File([string]$In, [string]$Out) {
-  Compress-Archive -LiteralPath "${In}" -DestinationPath "${Out}.${TS}.zip"
+function New-Directory([string]$Path) {
+  if (-not (Test-Path -LiteralPath "${Path}")) {
+    New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
+  }
+}
+
+function Backup-File([string]$Path) {
+  if (Test-Path -LiteralPath "${Path}") {
+    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
+  }
 }
 
 function Install-App {
@@ -54,12 +62,8 @@ function Install-App {
     $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${_}/refs/heads/main"
     $META = (Invoke-RestMethod -Uri "${URI}/meta.json");
     $META.install.file.ForEach({
-      if (-not (Test-Path -LiteralPath "$($_.path)")) {
-        New-Item -Path "$($_.path)" -ItemType "Directory" | Out-Null
-      }
-      if (Test-Path -LiteralPath "$($_.path)\$($_.name)") {
-        Compress-File -In "$($_.path)\$($_.name)" -Out "$($_.path)\$($_.name)"
-      }
+      New-Directory -Path "$($_.path)"
+      Backup-File -Path "$($_.path)\$($_.name)"
       Invoke-WebRequest -Uri "${URI}/$($_.name)" -OutFile "$($_.path)"
     })
   })
