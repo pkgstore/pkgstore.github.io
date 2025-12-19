@@ -49,7 +49,7 @@ function Backup-File([string]$Path) {
 
 function Import-Job([string]$Path, [string]$Name) {
   if ((Split-Path -Path "${Path}" -Leaf) -like 'job.*') {
-    Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}"
+    Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}" | Out-Null
   }
 }
 
