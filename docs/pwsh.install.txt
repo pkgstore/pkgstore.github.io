@@ -54,16 +54,24 @@ function Import-Job([string]$Path, [string]$Name) {
 }
 
 function Install-App {
-  $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
-  $META = (Invoke-RestMethod -Uri "${URI}/meta.json")
-  $NAME = $META.name
-  $DESC = $META.description
-  $META.install.file.ForEach({
-    New-Directory -Path "$($_.path)"
-    Backup-File -Path "$($_.path)\$($_.name)"
-    Invoke-WebRequest -Uri "${URI}/$($_.name)" -OutFile "$($_.path)"
-    Import-Job -Path "$($_.path)\$($_.name)" -Name "${NAME}" -Description "${DESC}"
-  })
+  try {
+    $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
+    $META = (Invoke-RestMethod -Uri "${URI}/meta.json")
+    $NAME = $META.name
+    $DESC = $META.description
+    $META.install.file.ForEach({
+      New-Directory -Path "$($_.path)"
+      Backup-File -Path "$($_.path)\$($_.name)"
+      Invoke-WebRequest -Uri "${URI}/$($_.name)" -OutFile "$($_.path)"
+      Import-Job -Path "$($_.path)\$($_.name)" -Name "${NAME}" -Description "${DESC}"
+    })
+  } catch {
+    if ($_.Exception.Message -match '404') {
+      Write-Warning "'meta.json' not found (404)!"
+    } else {
+      Write-Error "An error occurred: ${_}"
+    }
+  }
 }
 
 function Start-Script() {
