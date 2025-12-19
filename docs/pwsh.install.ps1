@@ -66,11 +66,8 @@ function Install-App {
       Import-Job -Path "$($_.path)\$($_.name)" -Name "${NAME}" -Description "${DESC}"
     })
   } catch {
-    if ($_.Exception.Message -match '404') {
-      Write-Warning "'meta.json' not found (404)!"
-    } else {
-      Write-Error "An error occurred: ${_}"
-    }
+    $StatusCode = $_.Exception.Response.StatusCode.value__
+    $StatusCode -eq '404' ? (Write-Warning "'meta.json' not found!") : (Write-Error "An error occurred: ${_}")
   }
 }
 
