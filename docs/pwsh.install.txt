@@ -67,7 +67,7 @@ function Install-App {
     })
   } catch {
     $StatusCode = $_.Exception.Response.StatusCode.Value__
-    $StatusCode -eq '404' ? (Write-Warning "'meta.json' not found!") : (Write-Error "An error occurred: ${_}")
+    $StatusCode -eq '404' ? (Write-Warning 'Resource not found (404)!') : (Write-Error "An error occurred: ${_}")
   }
 }
 
