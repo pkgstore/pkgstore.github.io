@@ -65,6 +65,7 @@ function installing() {
   jq -c '.install.file[]' "${meta}" | while read -r i; do
     local n; n=$( echo "$i" | jq -r '.name' )
     local p; p=$( echo "$i" | jq -r '.path' )
+    echo "Installing '${n}'..."
     directory "${p}" && download "${uri}/${n}" "${p}/${n}"
     job "${p}" "${n}" && app "${p}" "${n}"
   done

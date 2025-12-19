@@ -59,6 +59,7 @@ function Install-App {
     $Desc = $Meta.description
     $Meta.install.file.ForEach({
       $n = "$($_.name)"; $p = "$($_.path)"
+      Write-Host "Installing '${n}'..."
       New-Directory -Path "${p}"
       Backup-File -Path "${p}\${n}"
       Invoke-WebRequest -Uri "${Uri}/${n}" -OutFile "${p}"
