@@ -1,0 +1,76 @@
+<#PSScriptInfo
+.VERSION      0.1.0
+.GUID         9700053a-16e7-44d5-9654-ae013214cba7
+.AUTHOR       Kai Kimera
+.AUTHOREMAIL  mail@kaikim.ru
+.TAGS         pwsh powershell install
+.LICENSEURI   https://choosealicense.com/licenses/mit/
+.PROJECTURI
+#>
+
+#Requires -Version 7.4
+
+<#
+.SYNOPSIS
+Installing scripts.
+
+.DESCRIPTION
+The file allows you to install scripts in a special directory, including additional files for maintenance.
+#>
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# CONFIGURATION
+# -------------------------------------------------------------------------------------------------------------------- #
+
+param(
+  [Parameter(Mandatory)][string]$App,
+  [Parameter(Mandatory)][string]$Ver,
+  [string]$Org = 'pkgstore',
+  [string]$Pfx = 'pwsh-'
+)
+
+$TS = (Get-Date -UFormat '%s');
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# -----------------------------------------------------< SCRIPT >----------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------- #
+
+function New-Directory([string]$Path) {
+  if (-not (Test-Path -LiteralPath "${Path}")) {
+    New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
+  }
+}
+
+function Backup-File([string]$Path) {
+  if (Test-Path -LiteralPath "${Path}") {
+    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${TS}.${Path}.zip"
+  }
+}
+
+function Import-Job([string]$Path, [string]$Name) {
+  if ((Split-Path -Path "${Path}" -Leaf) -like 'job.*') {
+    Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}"
+  }
+}
+
+function Install-App {
+  try {
+    $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
+    $META = (Invoke-RestMethod -Uri "${URI}/meta.json")
+    $NAME = $META.name
+    $DESC = $META.description
+    $META.install.file.ForEach({
+      New-Directory -Path "$($_.path)"
+      Backup-File -Path "$($_.path)\$($_.name)"
+      Invoke-WebRequest -Uri "${URI}/$($_.name)" -OutFile "$($_.path)"
+      Import-Job -Path "$($_.path)\$($_.name)" -Name "${NAME}" -Description "${DESC}"
+    })
+  } catch {
+    $StatusCode = $_.Exception.Response.StatusCode.value__
+    $StatusCode -eq '404' ? (Write-Warning "'meta.json' not found!") : (Write-Error "An error occurred: ${_}")
+  }
+}
+
+function Start-Script() {
+  Install-App
+}; Start-Script
