@@ -36,21 +36,19 @@ $TS = (Get-Date -UFormat '%s');
 # -------------------------------------------------------------------------------------------------------------------- #
 
 function New-Directory([string]$Path) {
-  if (-not (Test-Path -LiteralPath "${Path}")) {
-    New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
-  }
+  if (Test-Path -LiteralPath "${Path}") { return 0 }
+  New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
 }
 
 function Backup-File([string]$Path) {
-  if (Test-Path -LiteralPath "${Path}") {
-    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
-  }
+  if (-not (Test-Path -LiteralPath "${Path}")) { return 0 }
+  Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
 }
 
 function Import-Job([string]$Path, [string]$Name) {
-  if ((Split-Path -Path "${Path}" -Leaf) -like 'job.*') {
-    Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}" | Out-Null
-  }
+  if (-not ((Split-Path -Path "${Path}" -Leaf) -like 'job.*')) { return 0 }
+  if (Get-ScheduledTask | Where-Object { $_.TaskName -eq "${Name}" }) { return 0 }
+  Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}" | Out-Null
 }
 
 function Install-App {
