@@ -36,18 +36,18 @@ $TS = (Get-Date -UFormat '%s');
 # -------------------------------------------------------------------------------------------------------------------- #
 
 function New-Directory([string]$Path) {
-  if (Test-Path -LiteralPath "${Path}") { return 0 }
+  if (Test-Path -LiteralPath "${Path}") { return }
   New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
 }
 
 function Backup-File([string]$Path) {
-  if (-not (Test-Path -LiteralPath "${Path}")) { return 0 }
+  if (-not (Test-Path -LiteralPath "${Path}")) { return }
   Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
 }
 
 function Import-Job([string]$Path, [string]$Name) {
-  if (-not ((Split-Path -Path "${Path}" -Leaf) -like 'job.*')) { return 0 }
-  if (Get-ScheduledTask | Where-Object { $_.TaskName -eq "${Name}" }) { return 0 }
+  if (-not ((Split-Path -Path "${Path}" -Leaf) -like 'job.*')) { return }
+  if (Get-ScheduledTask | Where-Object { $_.TaskName -eq "${Name}" }) { return }
   Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}" | Out-Null
 }
 
