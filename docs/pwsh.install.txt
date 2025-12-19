@@ -24,6 +24,7 @@ The file allows you to install scripts in a special directory, including additio
 
 param(
   [Parameter(Mandatory)][string[]]$App,
+  [Parameter(Mandatory)][string[]]$Ver,
   [string]$Org = 'pkgstore',
   [string]$Pfx = 'pwsh-'
 )
@@ -42,18 +43,27 @@ function New-Directory([string]$Path) {
 
 function Backup-File([string]$Path) {
   if (Test-Path -LiteralPath "${Path}") {
-    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
+    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${TS}.${Path}.zip"
+  }
+}
+
+function Import-Job([string]$Path, [string]$Name) {
+  if ((Split-Path -Path "${Path}" -Leaf) -like 'job.*') {
+    Register-ScheduledTask -Xml (Get-Content "${Path}" | Out-String) -TaskName "${Name}"
   }
 }
 
 function Install-App {
   $App.ForEach({
-    $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${_}/refs/heads/main"
-    $META = (Invoke-RestMethod -Uri "${URI}/meta.json");
+    $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${_}/refs/tags/${Ver}"
+    $META = (Invoke-RestMethod -Uri "${URI}/meta.json")
+    $NAME = $META.name
+    $DESC = $META.description
     $META.install.file.ForEach({
       New-Directory -Path "$($_.path)"
       Backup-File -Path "$($_.path)\$($_.name)"
       Invoke-WebRequest -Uri "${URI}/$($_.name)" -OutFile "$($_.path)"
+      Import-Job -Path "$($_.path)\$($_.name)" -Name "${NAME}" -Description "${DESC}"
     })
   })
 }
