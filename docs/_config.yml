@@ -1,0 +1,17 @@
+title: 'Package Store'
+description: ''
+
+defaults:
+  - scope:
+      path: ''
+    values:
+      image: ''
+
+webmaster_verifications:
+  google: ''
+  yandex: ''
+
+plugins:
+  - jekyll-seo-tag
+  - jekyll-sitemap
+  - jemoji

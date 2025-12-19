@@ -1,5 +1,3 @@
-# Package Store
-
 ## Installing packages
 
 ### Bash
