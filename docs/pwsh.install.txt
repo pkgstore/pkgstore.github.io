@@ -43,7 +43,7 @@ function New-Directory([string]$Path) {
 
 function Backup-File([string]$Path) {
   if (Test-Path -LiteralPath "${Path}") {
-    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${TS}.${Path}.zip"
+    Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
   }
 }
 
