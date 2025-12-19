@@ -53,15 +53,16 @@ function Import-Job([string]$Path, [string]$Name) {
 
 function Install-App {
   try {
-    $URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
-    $META = (Invoke-RestMethod -Uri "${URI}/meta.json")
-    $NAME = $META.name
-    $DESC = $META.description
-    $META.install.file.ForEach({
-      New-Directory -Path "$($_.path)"
-      Backup-File -Path "$($_.path)\$($_.name)"
-      Invoke-WebRequest -Uri "${URI}/$($_.name)" -OutFile "$($_.path)"
-      Import-Job -Path "$($_.path)\$($_.name)" -Name "${NAME}" -Description "${DESC}"
+    $Uri = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
+    $Meta = (Invoke-RestMethod -Uri "${Uri}/meta.json")
+    $Name = $Meta.name
+    $Desc = $Meta.description
+    $Meta.install.file.ForEach({
+      $n = "$($_.name)"; $p = "$($_.path)"
+      New-Directory -Path "${p}"
+      Backup-File -Path "${p}\${n}"
+      Invoke-WebRequest -Uri "${Uri}/${n}" -OutFile "${p}"
+      Import-Job -Path "${p}\${n}" -Name "${Name}" -Description "${Desc}"
     })
   } catch {
     $StatusCode = $_.Exception.Response.StatusCode.Value__
@@ -69,6 +70,4 @@ function Install-App {
   }
 }
 
-function Start-Script() {
-  Install-App
-}; Start-Script
+function Start-Script() { Install-App }; Start-Script
