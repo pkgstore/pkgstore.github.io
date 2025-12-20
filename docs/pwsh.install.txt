@@ -29,8 +29,10 @@ param(
   [string]$Pfx = 'pwsh-'
 )
 
-$UUID = (New-Guid)
 $TS = (Get-Date -UFormat '%s');
+$UUID = (New-Guid)
+$URI = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
+$API = "${env:TEMP}\${UUID}.json"
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # -----------------------------------------------------< SCRIPT >----------------------------------------------------- #
@@ -66,16 +68,14 @@ function Import-Job([string]$Path, [string]$Name) {
 
 function Install-App {
   try {
-    $Uri = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
-    $Api = "${env:TEMP}\${UUID}.json"
-    Get-Api "${Uri}/meta.json" "${Api}"
-    $Meta = (Open-Api "${Api}")
+    Get-Api "${URI}/meta.json" "${API}"
+    $Meta = (Open-Api "${API}")
     $Name = $Meta.name
     Write-Host "--- ${Name}"
     $Meta.install.file.ForEach({
       $n = "$($_.name)"; $p = "$($_.path)"
       Write-Host "Installing '${n}'..."; Backup-File "${p}\${n}"
-      New-Directory "${p}"; Get-File "${Uri}/${n}" "${p}"; Import-Job "${p}\${n}" "${Name}"
+      New-Directory "${p}"; Get-File "${URI}/${n}" "${p}"; Import-Job "${p}\${n}" "${Name}"
     })
   } catch {
     $StatusCode = $_.Exception.Response.StatusCode.Value__
