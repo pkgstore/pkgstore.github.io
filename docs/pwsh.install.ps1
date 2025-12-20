@@ -29,15 +29,28 @@ param(
   [string]$Pfx = 'pwsh-'
 )
 
+$UUID = (New-Guid)
 $TS = (Get-Date -UFormat '%s');
 
 # -------------------------------------------------------------------------------------------------------------------- #
 # -----------------------------------------------------< SCRIPT >----------------------------------------------------- #
 # -------------------------------------------------------------------------------------------------------------------- #
 
+function Get-Api([string]$Uri, [string]$OutFile) {
+  Invoke-RestMethod -Uri "${Uri}" -OutFile "${OutFile}"
+}
+
+function Get-Json([string]$Path) {
+  Get-Content -Path "${Path}" -Raw | ConvertFrom-Json
+}
+
 function New-Directory([string]$Path) {
   if (Test-Path -LiteralPath "${Path}") { return }
   New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
+}
+
+function Get-File([string]$Uri, [string]$OutFile) {
+  Invoke-WebRequest -Uri "${Uri}" -OutFile "${OutFile}"
 }
 
 function Backup-File([string]$Path) {
@@ -54,16 +67,16 @@ function Import-Job([string]$Path, [string]$Name) {
 function Install-App {
   try {
     $Uri = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
-    $Meta = (Invoke-RestMethod -Uri "${Uri}/meta.json")
+    $Api = "${env:TEMP}\${UUID}.json"
+    Get-Api "${Uri}/meta.json" "${Api}"
+    $Meta = (Get-Json "${Api}")
     $Name = $Meta.name
-    $Desc = $Meta.description
+    Write-Host "--- ${Name}"
     $Meta.install.file.ForEach({
       $n = "$($_.name)"; $p = "$($_.path)"
       Write-Host "Installing '${n}'..."
-      New-Directory -Path "${p}"
-      Backup-File -Path "${p}\${n}"
-      Invoke-WebRequest -Uri "${Uri}/${n}" -OutFile "${p}"
-      Import-Job -Path "${p}\${n}" -Name "${Name}" -Description "${Desc}"
+      Backup-File "${p}\${n}"
+      New-Directory "${p}"; Get-File "${Uri}/${n}" "${p}"; Import-Job "${p}\${n}" "${Name}"
     })
   } catch {
     $StatusCode = $_.Exception.Response.StatusCode.Value__
