@@ -40,7 +40,7 @@ function Get-Api([string]$Uri, [string]$OutFile) {
   Invoke-RestMethod -Uri "${Uri}" -OutFile "${OutFile}"
 }
 
-function Get-Json([string]$Path) {
+function Open-Api([string]$Path) {
   Get-Content -Path "${Path}" -Raw | ConvertFrom-Json
 }
 
@@ -69,13 +69,12 @@ function Install-App {
     $Uri = "https://raw.githubusercontent.com/${Org}/${Pfx}${App}/refs/tags/${Ver}"
     $Api = "${env:TEMP}\${UUID}.json"
     Get-Api "${Uri}/meta.json" "${Api}"
-    $Meta = (Get-Json "${Api}")
+    $Meta = (Open-Api "${Api}")
     $Name = $Meta.name
     Write-Host "--- ${Name}"
     $Meta.install.file.ForEach({
       $n = "$($_.name)"; $p = "$($_.path)"
-      Write-Host "Installing '${n}'..."
-      Backup-File "${p}\${n}"
+      Write-Host "Installing '${n}'..."; Backup-File "${p}\${n}"
       New-Directory "${p}"; Get-File "${Uri}/${n}" "${p}"; Import-Job "${p}\${n}" "${Name}"
     })
   } catch {
