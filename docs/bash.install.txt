@@ -47,8 +47,9 @@ function package() {
   esac
 }
 
-function download() {
-  curl -fsSLo "${2}" "${1}"
+function backup() {
+  [[ ! -f "${1}" ]] && return 0
+  tar -cJf "${1}.${TS}.tar.xz" -C "${1%/*}" "${1##*/}"
 }
 
 function directory() {
@@ -56,19 +57,18 @@ function directory() {
   mkdir -p "${1}"
 }
 
-function backup() {
-  [[ ! -f "${1}" ]] && return 0
-  tar -cJf "${1}.${TS}.tar.xz" -C "${1%/*}" "${1##*/}"
-}
-
-function job() {
-  [[ "${2}" != job.* ]] && return 0
-  ln -sf "${1}/${2}" "/etc/cron.d/${2//./_}"
+function download() {
+  curl -fsSLo "${2}" "${1}"
 }
 
 function app() {
   [[ "${2}" != *.sh ]] && return 0
   chmod +x "${1}/${2}"
+}
+
+function job() {
+  [[ "${2}" != job.* ]] && return 0
+  ln -sf "${1}/${2}" "/etc/cron.d/${2//./_}"
 }
 
 function setup() {

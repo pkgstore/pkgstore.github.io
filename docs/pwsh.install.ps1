@@ -46,6 +46,11 @@ function Open-Api([string]$Path) {
   Get-Content -Path "${Path}" -Raw | ConvertFrom-Json
 }
 
+function Backup-File([string]$Path) {
+  if (-not (Test-Path -LiteralPath "${Path}")) { return }
+  Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
+}
+
 function New-Directory([string]$Path) {
   if (Test-Path -LiteralPath "${Path}") { return }
   New-Item -Path "${Path}" -ItemType 'Directory' | Out-Null
@@ -53,11 +58,6 @@ function New-Directory([string]$Path) {
 
 function Get-File([string]$Uri, [string]$OutFile) {
   Invoke-WebRequest -Uri "${Uri}" -OutFile "${OutFile}"
-}
-
-function Backup-File([string]$Path) {
-  if (-not (Test-Path -LiteralPath "${Path}")) { return }
-  Compress-Archive -LiteralPath "${Path}" -DestinationPath "${Path}.${TS}.zip"
 }
 
 function Import-Job([string]$Path, [string]$Name) {
