@@ -75,7 +75,7 @@ function Install-App {
     $Meta.install.file.ForEach({
       $n = "$($_.name)"; $p = "$($_.path)"
       Write-Host "Installing '${n}'..."; Backup-File "${p}\${n}"
-      New-Directory "${p}"; Get-File "${URI}/${n}" "${p}"; Import-Job "${p}\${n}" "${Name}"
+      New-Directory "${p}" && Get-File "${URI}/${n}" "${p}" && Import-Job "${p}\${n}" "${Name}"
     })
   } catch {
     $StatusCode = $_.Exception.Response.StatusCode.Value__

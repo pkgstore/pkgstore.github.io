@@ -79,7 +79,7 @@ function setup() {
     local n; n="$( echo "${i}" | jq -r '.name' )"
     local p; p="$( echo "${i}" | jq -r '.path' )"
     echo "Installing '${n}'..."; backup "${p}/${n}"
-    directory "${p}" && download "${URI}/${n}" "${p}/${n}" && job "${p}" "${n}" && app "${p}" "${n}"
+    directory "${p}" && download "${URI}/${n}" "${p}/${n}" && app "${p}" "${n}" && job "${p}" "${n}"
   done
 }
 
