@@ -1,6 +1,6 @@
 #!/usr/bin/env -S bash -euo pipefail
 # -------------------------------------------------------------------------------------------------------------------- #
-# BASH: INSTALLING AND UPDATING SCRIPTS
+# INSTALLING AND UPDATING SCRIPTS
 # -------------------------------------------------------------------------------------------------------------------- #
 # @package    Bash
 # @author     Kai Kimera <mail@kai.kim>
@@ -19,16 +19,26 @@
 APP="${1:?}"; readonly APP
 VER="${2:?}"; readonly VER
 ORG="${3:-pkgstore}"; readonly ORG
-PFX="${4:-pwsh-}"; readonly PFX
+PFX="${4:-bash-}"; readonly PFX
 
+# Variables.
 TS="$( date '+%s' )"
+UUID="$( cat '/proc/sys/kernel/random/uuid' )"
+URI="https://raw.githubusercontent.com/${ORG}/${PFX}${APP}/refs/tags/${VER}"
+API="/tmp/${UUID}.json"
+
+# -------------------------------------------------------------------------------------------------------------------- #
+# -----------------------------------------------------< SCRIPT >----------------------------------------------------- #
+# -------------------------------------------------------------------------------------------------------------------- #
 
 function package() {
+  command -v 'jq' > '/dev/null' 2>&1 && return 0
+
   local os_id; os_id="$( . '/etc/os-release' && echo "${ID}" )";
-  local p; p=('jq');
+  local pkg; pkg=('jq');
 
   function debian() {
-    apt update && apt install --yes "${p[@]}"
+    apt update && apt install --yes "${pkg[@]}"
   }
 
   case "${os_id}" in
@@ -42,33 +52,35 @@ function download() {
 }
 
 function directory() {
-  [[ ! -d "${1}" ]] && mkdir -p "${1}"
+  [[ -d "${1}" ]] && return 0
+  mkdir -p "${1}"
 }
 
 function backup() {
-  [[ -f "${1}" ]] && tar -cJf "${1}.${TS}.tar.xz" -C "${1%/*}" "${1##*/}"
+  [[ ! -f "${1}" ]] && return 0
+  tar -cJf "${1}.${TS}.tar.xz" -C "${1%/*}" "${1##*/}"
 }
 
 function job() {
-  [[ "${2}" == job.* ]] && ln -sf "${1}/${2}" "/etc/cron.d/${2//./_}"
+  [[ "${2}" != job.* ]] && return 0
+  ln -sf "${1}/${2}" "/etc/cron.d/${2//./_}"
 }
 
 function app() {
-  [[ "${2}" == *.sh ]] && chmod +x "${1}/${2}"
+  [[ "${2}" != *.sh ]] && return 0
+  chmod +x "${1}/${2}"
 }
 
-function installing() {
-  local uri; uri="https://raw.githubusercontent.com/${ORG}/${PFX}${APP}/refs/tags/${VER}"
-  local meta; meta="$( curl -s "${uri}/meta.json" )"
-  local name; name="$( $meta | jq -r '.name' )"
-  local desc; desc="$( $meta | jq -r '.description' )"
-  jq -c '.install.file[]' "${meta}" | while read -r i; do
-    local n; n=$( echo "$i" | jq -r '.name' )
-    local p; p=$( echo "$i" | jq -r '.path' )
-    echo "Installing '${n}'..."
-    directory "${p}" && download "${uri}/${n}" "${p}/${n}"
-    job "${p}" "${n}" && app "${p}" "${n}"
+function setup() {
+  download "${URI}/meta.json" "${API}"
+  local name; name="$( jq -r '.name' "${API}" )"
+  echo "--- ${name}"
+  jq -c '.install.file[]' "${API}" | while read -r i; do
+    local n; n="$( echo "${i}" | jq -r '.name' )"
+    local p; p="$( echo "${i}" | jq -r '.path' )"
+    echo "Installing '${n}'..."; backup "${p}/${n}"
+    directory "${p}" && download "${URI}/${n}" "${p}/${n}" && job "${p}" "${n}" && app "${p}" "${n}"
   done
 }
 
-function main() { installing; }; main "$@"
+function main() { package && setup; }; main "$@"
