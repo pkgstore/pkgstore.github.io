@@ -2,6 +2,11 @@
 
 ### Bash
 
+```bash
+ver='v0.0.0'; app='example'; curl -sL 'https://pkgstore.ru/bash.install.sh' | bash -s -- "${app}" "${ver}"
+```
+
+
 ### PowerShell
 
 ```powershell
