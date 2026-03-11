@@ -1,5 +1,9 @@
-title: 'Package Store'
+name: 'Package Store'
+title: null
 description: ''
+email: 'mail@kaikim.ru'
+titles_from_headings:
+  enabled: false
 
 defaults:
   - scope:
@@ -10,6 +14,11 @@ defaults:
 webmaster_verifications:
   google: ''
   yandex: ''
+
+author:
+  name: 'Kai Kimera'
+  url: 'https://kaikim.ru/'
+locale: 'ru_RU'
 
 plugins:
   - jekyll-seo-tag
