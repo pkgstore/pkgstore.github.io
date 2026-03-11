@@ -75,7 +75,7 @@ function setup() {
   download "${URI}/meta.json" "${API}"
   local name; name="$( jq -r '.name' "${API}" )"
   echo "--- ${name}"
-  jq -c '.install.file[]' "${API}" | while read -r i; do
+  jq -c '.install.files[]' "${API}" | while read -r i; do
     local n; n="$( echo "${i}" | jq -r '.name' )"
     local p; p="$( echo "${i}" | jq -r '.path' )"
     echo "Installing '${n}'..."; backup "${p}/${n}"

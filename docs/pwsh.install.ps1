@@ -72,7 +72,7 @@ function Install-App {
     $Meta = (Open-Api "${API}")
     $Name = $Meta.name
     Write-Host "--- ${Name}"
-    $Meta.install.file.ForEach({
+    $Meta.install.files.ForEach({
       $n = "$($_.name)"; $p = "$($_.path)"
       Write-Host "Installing '${n}'..."; Backup-File "${p}\${n}"
       New-Directory "${p}" && Get-File "${URI}/${n}" "${p}" && Import-Job "${p}\${n}" "${Name}"
