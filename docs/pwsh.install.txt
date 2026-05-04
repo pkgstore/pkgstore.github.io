@@ -39,7 +39,7 @@ $API = "${env:TEMP}\${UUID}.json"
 # -------------------------------------------------------------------------------------------------------------------- #
 
 function Get-Api([string]$Uri, [string]$OutFile) {
-  Invoke-RestMethod -Uri "${Uri}" -OutFile "${OutFile}"
+  Invoke-RestMethod -SkipCertificateCheck -Uri "${Uri}" -OutFile "${OutFile}"
 }
 
 function Open-Api([string]$Path) {
@@ -57,7 +57,7 @@ function New-Directory([string]$Path) {
 }
 
 function Get-File([string]$Uri, [string]$OutFile) {
-  Invoke-WebRequest -Uri "${Uri}" -OutFile "${OutFile}"
+  Invoke-WebRequest -SkipCertificateCheck -Uri "${Uri}" -OutFile "${OutFile}"
 }
 
 function Import-Job([string]$Path, [string]$Name) {
